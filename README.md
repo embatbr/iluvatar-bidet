@@ -1,5 +1,7 @@
 # Bidet
 
+![bidet squirting water](logo.jpg)
+
 A generic bid-ask system. Bidet may be used in several scenarios, such as:
 
 - Cryptocurrency exchange;
@@ -57,3 +59,4 @@ What types of technologies may be needed:
         - May be the fastest one;
         - Gives me full freedom and control;
         - May fuck everything due to a simple mistypo.
+- Definitions of classes to describe orders, spaces and how a transaction (decrements bidder's and increments asker's amounts of currency, changes product ownership - numeric value or relation between objects - and removes the product - partially or totally - from circulation) is performed must appear here.
