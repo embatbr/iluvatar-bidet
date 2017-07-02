@@ -6,7 +6,52 @@ well as trading logic.
 import decimal
 
 
-class Currency(object):
+class Model(object):
+
+    def __validate(self, *args):
+        return False
+
+    def save(self, session, *args):
+        self.__validate(args)
+
+        sql_insert = self.__sql_insert__.format(self.__schema__, self.__table__)
+        sql_insert = sql_insert % tuple(*args)
+
+        cur = session.cursor()
+
+        saved = False
+        try:
+            cur.execute(sql_insert)
+            saved = True
+        except Exception as e:
+            pass
+        session.commit()
+
+        cur.close()
+
+        return saved
+
+    def exists(self, session, *args):
+        self.__validate(args)
+
+        sql_exists = self.__sql_exists__.format(self.__schema__, self.__table__)
+        sql_exists = sql_exists % tuple(*args)
+
+        cur = session.cursor()
+
+        cur.execute(sql_exists)
+        exists = cur.fetchone()[0]
+
+        cur.close()
+
+        return exists
+
+    @staticmethod
+    def get_permitted_records():
+        return list()
+
+
+class Currency(Model):
 
     __schema__ = '_bidet_financial'
     __table__ = 'currencies'
@@ -41,35 +86,11 @@ class Currency(object):
 
         return records
 
-    # TODO extract to superclass Model
     def save(self, session):
-        self.__validate(self._symbol, self._canon_name, self._decimal_places)
+        return super(Currency, self).save(session, [self._symbol, self._canon_name, self._decimal_places])
 
-        sql_insert = Currency.__sql_insert__.format(Currency.__schema__, Currency.__table__)
-        sql_insert = sql_insert % (self._symbol, self._canon_name, self._decimal_places)
-
-        cur = session.cursor()
-
-        cur.execute(sql_insert)
-        session.commit()
-
-        cur.close()
-
-    # TODO extract to superclass Model
     def exists(self, session):
-        self.__validate(self._symbol, self._canon_name, self._decimal_places)
-
-        sql_exists = Currency.__sql_exists__.format(Currency.__schema__, Currency.__table__)
-        sql_exists = sql_exists % self._symbol
-
-        cur = session.cursor()
-
-        cur.execute(sql_exists)
-        exists = cur.fetchone()[0]
-
-        cur.close()
-
-        return exists
+        return super(Currency, self).exists(session, [self._symbol])
 
     @staticmethod
     def get_permitted_records():

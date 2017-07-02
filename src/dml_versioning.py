@@ -10,7 +10,6 @@ def populate(ModelClass, credentials):
 
     for record in ModelClass.get_permitted_records():
         model = ModelClass(*record)
-        if not model.exists(session):
-            model.save(session)
+        model.save(session)
 
     session.close()
