@@ -4,6 +4,7 @@ well as trading logic.
 
 
 import decimal
+import psycopg2
 
 
 class Model(object):
@@ -47,8 +48,20 @@ class Model(object):
         return exists
 
     @staticmethod
-    def get_permitted_records():
+    def _get_permitted_records():
         return list()
+
+    @staticmethod
+    def _populate(ModelSubClass, credentials):
+        assert ModelSubClass != Model, 'Class Model cannot populate a database.'
+
+        session = psycopg2.connect(**credentials)
+
+        for record in ModelSubClass._get_permitted_records():
+            model = ModelSubClass(*record)
+            model.save(session)
+
+        session.close()
 
 
 class Currency(Model):
@@ -93,5 +106,9 @@ class Currency(Model):
         return super(Currency, self).exists(session, [self._symbol])
 
     @staticmethod
-    def get_permitted_records():
+    def _get_permitted_records():
         return Currency.__permitted_records[:]
+
+    @staticmethod
+    def populate(credentials):
+        Model._populate(Currency, credentials)

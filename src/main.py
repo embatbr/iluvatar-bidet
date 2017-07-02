@@ -5,7 +5,6 @@
 from lamarck import Lamarck
 
 from configs import DB_EVOLUTIONS_PATH, DB_CREDENTIALS_MASTER
-from dml_versioning import populate
 from models import Currency
 
 
@@ -16,4 +15,4 @@ if __name__ == '__main__':
     lamarck = Lamarck(DB_EVOLUTIONS_PATH, DB_CREDENTIALS_MASTER)
     lamarck.evolve_ddl()
 
-    populate(Currency, DB_CREDENTIALS_MASTER)
+    Currency.populate(DB_CREDENTIALS_MASTER)
