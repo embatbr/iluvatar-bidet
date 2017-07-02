@@ -4,4 +4,4 @@
     <img src="logo.jpg" />
 </p>
 
-Trading back-end. Validates and stores orders and deals with execution of bids and asks. **Accepts requests only from [Termópilas](https://github.com/embatbr/iluvatar-termopilas)!**
+*Bidet* is the trading core. The microservice's instances receive requests only from a trading front-end named *Nasdaq*. In order to have several self-contained instances dealing with the same resource, the transaction lock is provided by database access (the transaction executes a sequence of linked operations in the database).
