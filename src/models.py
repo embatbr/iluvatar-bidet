@@ -9,6 +9,17 @@ import psycopg2
 
 class Model(object):
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        values = list()
+
+        for (k, v) in self.__dict__.items():
+            k = k.replace('_{}__'.format(name), '')
+            v = "'{}'".format(v) if isinstance(v, str) else v
+            values.append("{}: {}".format(k, v))
+
+        return "%s {\n\t%s\n}" % (name, ",\n\t".join(values))
+
     def __validate(self, *args):
         return False
 
@@ -24,9 +35,15 @@ class Model(object):
         try:
             cur.execute(sql_insert)
             saved = True
-        except Exception as e:
-            print(type(e))
-            print(e)
+            print('{} saved.'.format(self))
+
+        except psycopg2.IntegrityError as e:
+            msg = str(e).strip()
+
+            if msg == 'duplicate key value violates unique constraint "{}_pkey"'.format('currencies'):
+                print('{} already exists.'.format(self))
+            else:
+                print(msg)
 
         session.commit()
 
@@ -57,7 +74,6 @@ class Currency(Model):
     __table__ = 'currencies'
 
     __sql_insert__ = "INSERT INTO {}.{} (symbol, canon_name, decimal_places) VALUES ('%s', '%s', %d)"
-    __sql_exists__ = "SELECT EXISTS (SELECT * FROM {}.{} WHERE symbol = '%s')"
 
     __permitted_records = [
         ('btc', 'bitcoin', 8),
@@ -91,8 +107,7 @@ class Currency(Model):
         return records
 
     def save(self, session):
-        return super(Currency, self).save(session, [self.__symbol, self.__canon_name,
-                                                    self.__decimal_places])
+        return super(Currency, self).save(session, [self.symbol, self.canon_name, self.decimal_places])
 
     @staticmethod
     def _get_permitted_records():
