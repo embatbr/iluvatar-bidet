@@ -4,15 +4,12 @@
 
 from lamarck import Lamarck
 
-from configs import DB_EVOLUTIONS_PATH, DB_CREDENTIALS_MASTER
-from models import Currency
+from configs import DB_EVOLUTIONS_PATH, DB_CREDENTIALS_SET
+from models import Populator
 
 
 if __name__ == '__main__':
-    from configs import DB_CREDENTIALS_MASTER
-
-
-    lamarck = Lamarck(DB_EVOLUTIONS_PATH, DB_CREDENTIALS_MASTER)
+    lamarck = Lamarck(DB_EVOLUTIONS_PATH, DB_CREDENTIALS_SET['master'])
     lamarck.evolve_ddl()
 
-    Currency.populate(DB_CREDENTIALS_MASTER)
+    Populator.populate(DB_CREDENTIALS_SET)
