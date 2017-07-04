@@ -9,16 +9,27 @@ import psycopg2
 
 class Model(object):
 
+    def __init__(self, repr_keys=None):
+        self.repr_keys = repr_keys
+
+    # TODO make it cacheable (run once) for immutable/read-only objects
     def __repr__(self):
-        name = self.__class__.__name__
+        classname = self.__class__.__name__
         values = list()
 
-        for (k, v) in self.__dict__.items():
-            k = k.replace('_{}__'.format(name), '')
-            v = "'{}'".format(v) if isinstance(v, str) else v
-            values.append("{}: {}".format(k, v))
+        keys = self.__dict__.keys()
+        if self.repr_keys:
+            func = lambda key: key.replace('_{}__'.format(classname), '') in self.repr_keys
+            keys = filter(func, keys)
 
-        return "%s {\n\t%s\n}" % (name, ",\n\t".join(values))
+        for key in keys:
+            value = self.__dict__[key]
+            key = key.replace('_{}__'.format(classname), '')
+            value = "'{}'".format(value) if isinstance(value, str) else value
+            values.append("{}: {}".format(key, value))
+
+        # return "%s {\n\t%s\n}" % (classname, ",\n\t".join(values))
+        return "%s { %s }" % (classname, ", ".join(values))
 
     def __validate(self, *args):
         return False
@@ -35,13 +46,13 @@ class Model(object):
         try:
             cur.execute(sql_insert)
             saved = True
-            print('{} saved.'.format(self))
+            print('[INFO] object {} stored.'.format(self))
 
         except psycopg2.IntegrityError as e:
             msg = str(e).strip()
 
             if msg == 'duplicate key value violates unique constraint "{}_pkey"'.format('currencies'):
-                print('{} already exists.'.format(self))
+                print('[ERROR] object {} duplicated.'.format(self))
             else:
                 print(msg)
 
@@ -82,6 +93,8 @@ class Currency(Model):
     ]
 
     def __init__(self, symbol, canon_name, decimal_places):
+        super(Currency, self).__init__(['symbol', 'canon_name', 'decimal_places'])
+
         records = self.__validate(symbol, canon_name, decimal_places)
         (self.__symbol, self.__canon_name, self.__decimal_places) = records
 

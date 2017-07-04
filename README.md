@@ -10,19 +10,19 @@ Version: 0.2.0
 
 ## TODO
 
-- Use a proper logging strategy;
-- Write a test suite:
-    - Unit tests;
-    - System tests (initially a few to test the flow);
-    - Load tests;
-    - Stress tests.
-- Write the code to make trading:
-    - Order creation;
-    - Order activation (actual trading):
+1. Use a proper logging strategy;
+2. Write a test suite:
+    1. Unit tests;
+    2. System tests (initially a few to test the flow);
+    3. Load tests;
+    4. Stress tests.
+3. Write the code to make trading:
+    1. Order creation;
+    2. Order activation (actual trading):
         - Isolated;
         - Atomic;
         - Consistent:
             - Maybe using a logic similar to blockchain;
             - An order must be linked to a previous order (executed or not?).
-- Create a CDC strategy:
+4. Create a CDC strategy:
     - Useful to maintain the trading order activation correctly ordered.
