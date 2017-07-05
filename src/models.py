@@ -4,32 +4,41 @@ well as trading logic.
 
 
 import decimal
+import json
 import psycopg2
 
 
 class Model(object):
 
-    def __init__(self, repr_keys=None):
-        self.repr_keys = repr_keys
+    def __init__(self, read_only=False):
+        self.read_only = read_only
+        self.json_repr = dict()
+        self.__repr_str = ''
 
-    # TODO make it cacheable (run once) for immutable/read-only objects
+    def as_json(self):
+        if not(self.json_repr) or not(self.read_only):
+            classname = self.__class__.__name__
+            class_type = globals()[classname].__dict__
+            class_attr = class_type['_%s__json_keys' % (classname)]
+
+            self.__repr_str = list()
+
+            for key in class_attr:
+                value = self.__dict__['_%s__%s' % (classname, key)]
+                self.json_repr[key] = value
+
+                value = "'%s'" % value if isinstance(value, str) else value
+                self.__repr_str.append("%s: %s" % (key, value))
+
+            # good for logging
+            self.__repr_str = "{ %s }" % ", ".join(self.__repr_str)
+
+        return self.json_repr
+
     def __repr__(self):
-        classname = self.__class__.__name__
-        values = list()
-
-        keys = self.__dict__.keys()
-        if self.repr_keys:
-            func = lambda key: key.replace('_{}__'.format(classname), '') in self.repr_keys
-            keys = filter(func, keys)
-
-        for key in keys:
-            value = self.__dict__[key]
-            key = key.replace('_{}__'.format(classname), '')
-            value = "'{}'".format(value) if isinstance(value, str) else value
-            values.append("{}: {}".format(key, value))
-
-        # return "%s {\n\t%s\n}" % (classname, ",\n\t".join(values))
-        return "%s { %s }" % (classname, ", ".join(values))
+        if not(self.__repr_str) or not(self.read_only):
+            self.as_json()
+        return self.__repr_str
 
     def __validate(self, *args):
         return False
@@ -92,8 +101,10 @@ class Currency(Model):
         ('eth', 'ethereum', 18)
     ]
 
+    __json_keys = ['symbol', 'canon_name', 'decimal_places']
+
     def __init__(self, symbol, canon_name, decimal_places):
-        super(Currency, self).__init__(['symbol', 'canon_name', 'decimal_places'])
+        super(Currency, self).__init__(read_only=True)
 
         records = self.__validate(symbol, canon_name, decimal_places)
         (self.__symbol, self.__canon_name, self.__decimal_places) = records
@@ -151,14 +162,14 @@ class Populator(object):
         assert db_user in Populator.__permitted_users, "User '{}' not allowed.".format(db_user)
 
     @staticmethod
-    def __grant_or_revoke(session, cur, sql_schema, sql_table, db_user):
+    def __grant_or_revoke(session, cur, db_user):
         for model_sub_class in Populator.__model_sub_class_list:
-            cur.execute(sql_schema.format(model_sub_class.__schema__,
-                                          db_user))
+            cur.execute(Populator.__sql_grant_schema__.format(model_sub_class.__schema__,
+                                                              db_user))
 
-            cur.execute(sql_table.format(model_sub_class.__schema__,
-                                         model_sub_class.__table__,
-                                         db_user))
+            cur.execute(Populator.__sql_grant_table__.format(model_sub_class.__schema__,
+                                                             model_sub_class.__table__,
+                                                             db_user))
 
         session.commit();
 
@@ -170,18 +181,15 @@ class Populator(object):
         session = psycopg2.connect(**db_credentials_set['master'])
         cur = session.cursor()
 
-        Populator.__grant_or_revoke(session, cur, Populator.__sql_grant_schema__,
-                                    Populator.__sql_grant_table__,
-                                    db_credentials_set['populator']['user'])
+        Populator.__grant_or_revoke(session, cur, db_credentials_set['populator']['user'])
 
         for model_sub_class in Populator.__model_sub_class_list:
             model_sub_class.populate(db_credentials_set['populator'])
 
-        Populator.__grant_or_revoke(session, cur, Populator.__sql_revoke_schema__,
-                                    Populator.__sql_revoke_table__,
-                                    db_credentials_set['populator']['user'])
+        Populator.__grant_or_revoke(session, cur, db_credentials_set['populator']['user'])
 
         cur.close()
         session.close()
 
+        # this credential's only purpose is to be used in this function, therefore its deletion here
         del db_credentials_set['populator']
