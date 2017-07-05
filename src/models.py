@@ -18,8 +18,7 @@ class Model(object):
     def as_json(self):
         if not(self.__json_repr) or not(self.__read_only):
             classname = self.__class__.__name__
-            class_type = globals()[classname].__dict__
-            class_attr = class_type['_%s__json_keys' % (classname)]
+            class_attr = self.__class__.__dict__['_%s__json_keys' % (classname)]
 
             self.__repr_str = list()
 
@@ -31,7 +30,7 @@ class Model(object):
                 self.__repr_str.append("%s: %s" % (key, value))
 
             # good for logging
-            self.__repr_str = "{ %s }" % ", ".join(self.__repr_str)
+            self.__repr_str = "%s { %s }" % (classname, ", ".join(self.__repr_str))
 
         return self.__json_repr
 
