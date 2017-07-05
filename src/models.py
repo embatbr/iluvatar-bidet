@@ -11,12 +11,12 @@ import psycopg2
 class Model(object):
 
     def __init__(self, read_only=False):
-        self.read_only = read_only
-        self.json_repr = dict()
+        self.__read_only = read_only
+        self.__json_repr = dict()
         self.__repr_str = ''
 
     def as_json(self):
-        if not(self.json_repr) or not(self.read_only):
+        if not(self.__json_repr) or not(self.__read_only):
             classname = self.__class__.__name__
             class_type = globals()[classname].__dict__
             class_attr = class_type['_%s__json_keys' % (classname)]
@@ -25,7 +25,7 @@ class Model(object):
 
             for key in class_attr:
                 value = self.__dict__['_%s__%s' % (classname, key)]
-                self.json_repr[key] = value
+                self.__json_repr[key] = value
 
                 value = "'%s'" % value if isinstance(value, str) else value
                 self.__repr_str.append("%s: %s" % (key, value))
@@ -33,10 +33,10 @@ class Model(object):
             # good for logging
             self.__repr_str = "{ %s }" % ", ".join(self.__repr_str)
 
-        return self.json_repr
+        return self.__json_repr
 
     def __repr__(self):
-        if not(self.__repr_str) or not(self.read_only):
+        if not(self.__repr_str) or not(self.__read_only):
             self.as_json()
         return self.__repr_str
 
@@ -101,7 +101,7 @@ class Currency(Model):
         ('eth', 'ethereum', 18)
     ]
 
-    __json_keys = ['symbol', 'canon_name', 'decimal_places']
+    __json_keys = ['symbol', 'canon_name']
 
     def __init__(self, symbol, canon_name, decimal_places):
         super(Currency, self).__init__(read_only=True)
