@@ -10,12 +10,14 @@ Version: 0.2.0
 
 ## TODO
 
-1. Document the database users with its details:
+1. Use a proper logging strategy:
+    - [Paddy](https://github.com/embatbr/paddy)
+    - Links:
+        - https://logmatic.io/blog/python-logging-with-json-steroids/
+2. Document the database users with its details:
     - Permissions;
     - Number of simultaneous connections;
     - How to create it and which commands run before its use.
-2. Use a proper logging strategy:
-    - [Paddy](https://github.com/embatbr/paddy)
 3. Write a test suite:
     1. Unit tests;
     2. System tests (initially a few to test the flow);
