@@ -18,19 +18,15 @@ class Model(object):
     def as_json(self):
         if not(self.__json_repr) or not(self.__read_only):
             classname = self.__class__.__name__
-            class_attr = self.__class__.__dict__['_%s__json_keys' % (classname)]
 
-            self.__repr_str = list()
+            props = self.__class__.__dict__
+            is_prop = lambda key: isinstance(props[key], property)
+            props = [(key, getattr(self, key)) for key in props if is_prop(key)]
 
-            for key in class_attr:
-                value = self.__dict__['_%s__%s' % (classname, key)]
-                self.__json_repr[key] = value
+            self.__json_repr = dict(props)
 
-                value = "'%s'" % value if isinstance(value, str) else value
-                self.__repr_str.append("%s: %s" % (key, value))
-
-            # good for logging
-            self.__repr_str = "%s { %s }" % (classname, ", ".join(self.__repr_str))
+            dump = json.dumps(self.__json_repr, ensure_ascii=False, indent=4)
+            self.__repr_str = "%s %s" % (classname, dump)
 
         return self.__json_repr
 
@@ -60,7 +56,7 @@ class Model(object):
             msg = str(e).strip()
 
             if msg == 'duplicate key value violates unique constraint "{}_pkey"'.format('currencies'):
-                print('[ERROR] object {} duplicated.'.format(self))
+                print('[ERROR] object {} already exists.'.format(self))
             else:
                 print(msg)
 
@@ -99,8 +95,6 @@ class Currency(Model):
         ('ltc', 'litecoin', 8),
         ('eth', 'ethereum', 18)
     ]
-
-    __json_keys = ['symbol', 'canon_name']
 
     def __init__(self, symbol, canon_name, decimal_places):
         super(Currency, self).__init__(read_only=True)
