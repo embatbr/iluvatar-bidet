@@ -8,16 +8,24 @@ Version: 0.2.0
 
 *Bidet* is the trading core. The microservice's instances receive requests only from a trading front-end named *Nasdaq*. In order to have several self-contained instances dealing with the same resource, the transaction lock is provided by database access (the transaction executes a sequence of linked operations in the database).
 
+## Map
+
+The project's root is composed of the following high level directories:
+
+- [src](./src) - Python source code, containing packages and modules;
+- [docs](./docs) - More detailed documentation than found in this document;
+- [db](./db) - Database related material: configuration files, evolutions and etc.
+
 ## TODO
 
-1. Use a proper logging strategy:
-    - [Paddy](https://github.com/embatbr/paddy)
-    - Links:
-        - https://logmatic.io/blog/python-logging-with-json-steroids/
-2. Document the database users with its details:
+1. Document the database users with its details:
     - Permissions;
     - Number of simultaneous connections;
     - How to create it and which commands run before its use.
+2. Use a proper logging strategy:
+    - [Paddy](https://github.com/embatbr/paddy)
+    - Links:
+        - https://logmatic.io/blog/python-logging-with-json-steroids/
 3. Write a test suite:
     1. Unit tests;
     2. System tests (initially a few to test the flow);
