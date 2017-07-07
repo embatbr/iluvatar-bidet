@@ -5,7 +5,11 @@ well as trading logic.
 
 import decimal
 import json
+import logging
 import psycopg2
+
+
+logger = logging.getLogger(__name__)
 
 
 class Model(object):
@@ -25,7 +29,7 @@ class Model(object):
 
             self.__json_repr = dict(props)
 
-            dump = json.dumps(self.__json_repr, ensure_ascii=False, indent=4)
+            dump = json.dumps(self.__json_repr, ensure_ascii=False)
             self.__repr_str = "%s %s" % (classname, dump)
 
         return self.__json_repr
@@ -50,15 +54,15 @@ class Model(object):
         try:
             cur.execute(sql_insert)
             saved = True
-            print('[INFO] object {} stored.'.format(self))
+            logger.info('object %s stored.', self)
 
         except psycopg2.IntegrityError as e:
             msg = str(e).strip()
 
             if msg == 'duplicate key value violates unique constraint "{}_pkey"'.format('currencies'):
-                print('[ERROR] object {} already exists.'.format(self))
+                logger.error('object {} already exists.'.format(self))
             else:
-                print(msg)
+                logger.error(msg)
 
         session.commit()
 

@@ -3,10 +3,21 @@ information.
 """
 
 
+import logging
 import os
+import pendulum as pdm
 
 
 PROJECT_ROOT_PATH = os.environ.get('PROJECT_ROOT_PATH', '/')
+
+EXECUTION_DATETIME = os.environ.get('EXECUTION_DATETIME', pdm.utcnow().strftime('%Y_%m_%d_%H_%M_%S'))
+
+LOGGING = {
+    'path': '{}/logs'.format(PROJECT_ROOT_PATH),
+    'level': logging.DEBUG
+}
+# LOGGING['filename'] = '{}/app_{}.log'.format(LOGGING['path'], EXECUTION_DATETIME)
+LOGGING['filename'] = '{}/app.log'.format(LOGGING['path'])
 
 DB_PATH = '{}/db'.format(PROJECT_ROOT_PATH)
 DB_EVOLUTIONS_PATH = '{}/evolutions'.format(DB_PATH)
